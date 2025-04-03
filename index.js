@@ -2,12 +2,14 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./database/connect");
-const noticeRoutes = require("./src/Notice"); // Ensure correct import
-const eventRoutes = require('./src/UpcomingEvents')
-const cloudinary = require('./src/PastEvents')
-const professor = require('./src/Professor')
-const magzine = require('./src/magzine')
-const pastEvents = require('./src/PastEvents')
+const noticeRoutes = require("./src/Notice");
+const eventRoutes = require("./src/UpcomingEvents");
+const cloudinaryRoutes = require("./src/PastEvents");
+const professorRoutes = require("./src/Professor");
+const magazineRoutes = require("./src/magzine");
+const pastEventsRoutes = require("./src/PastEvents");
+const authRoutes = require("./src/authRoutes"); // Import the authentication routes
+
 const app = express();
 const PORT = process.env.PORT || 8000;
 
@@ -21,12 +23,14 @@ connectDB()
     app.use(cors());
 
     // Routes
-    app.use("/notice", noticeRoutes); 
-    app.use("/upcomingEvents",eventRoutes);
-    app.use("/cloudinary",cloudinary);
-    app.use("/faculties",professor);
-    app.use("/pastEvents",pastEvents);
-    app.use("/magzine",magzine);
+    app.use("/notice", noticeRoutes);
+    app.use("/upcomingEvents", eventRoutes);
+    app.use("/cloudinary", cloudinaryRoutes);
+    app.use("/faculties", professorRoutes);
+    app.use("/pastEvents", pastEventsRoutes);
+    app.use("/magazine", magazineRoutes);
+    app.use("/auth", authRoutes); // Add the authentication routes
+
     // Error Handling Middleware
     app.use((err, req, res, next) => {
       console.error(err.stack);

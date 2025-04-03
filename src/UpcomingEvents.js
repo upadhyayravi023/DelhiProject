@@ -7,17 +7,18 @@ const upEventsSchema = new mongoose.Schema(
   {
     subject: String,
     body: String,
+    links: [String], // Optional: Include if you want to add links to the event
   },
   { timestamps: true }
 );
 
-const UpcomingEvents = mongoose.model("UpcomingEvents", upEventsSchema);
+const UpcomingEvent = mongoose.model("UpcomingEvent", upEventsSchema);
 
 // Create Upcoming Event
 router.post("/create", async (req, res) => {
   try {
-    const { subject, body } = req.body;
-    const newEvent = new UpcomingEvents({ subject, body });
+    const { subject, body, links } = req.body;
+    const newEvent = new UpcomingEvent({ subject, body, links });
     await newEvent.save();
     res.status(201).json({ message: "Event created successfully", event: newEvent });
   } catch (err) {
@@ -28,8 +29,12 @@ router.post("/create", async (req, res) => {
 // Update Upcoming Event
 router.put("/update/:id", async (req, res) => {
   try {
-    const { subject, body } = req.body;
-    const updatedEvent = await UpcomingEvents.findByIdAndUpdate(req.params.id, { subject, body }, { new: true });
+    const { subject, body, links } = req.body;
+    const updatedEvent = await UpcomingEvent.findByIdAndUpdate(
+      req.params.id,
+      { subject, body, links },
+      { new: true }
+    );
     if (!updatedEvent) return res.status(404).json({ message: "Event not found" });
     res.json({ message: "Event updated successfully", event: updatedEvent });
   } catch (err) {
@@ -40,7 +45,7 @@ router.put("/update/:id", async (req, res) => {
 // Delete Upcoming Event
 router.delete("/delete/:id", async (req, res) => {
   try {
-    const deletedEvent = await UpcomingEvents.findByIdAndDelete(req.params.id);
+    const deletedEvent = await UpcomingEvent.findByIdAndDelete(req.params.id);
     if (!deletedEvent) return res.status(404).json({ message: "Event not found" });
     res.json({ message: "Event deleted successfully" });
   } catch (err) {
@@ -48,10 +53,10 @@ router.delete("/delete/:id", async (req, res) => {
   }
 });
 
-// Get Last 10 Upcoming Events
+// Get All Upcoming Events
 router.get("/all", async (req, res) => {
   try {
-    const events = await UpcomingEvents.find().sort({ createdAt: -1 });
+    const events = await UpcomingEvent.find().sort({ createdAt: -1 });
     res.json({ events });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -6,6 +6,7 @@ const noticeSchema = new mongoose.Schema(
   {
     subject: String,
     body: String,
+    links: [String],
   },
   { timestamps: true }
 );
@@ -14,8 +15,8 @@ const Notice = mongoose.model("Notice", noticeSchema);
 
 router.post("/create", async (req, res) => {
   try {
-    const { subject, body } = req.body;
-    const newNotice = new Notice({ subject, body });
+    const { subject, body, links } = req.body;
+    const newNotice = new Notice({ subject, body, links });
     await newNotice.save();
     res.status(201).json({ message: "Notice created successfully", notice: newNotice });
   } catch (err) {
@@ -25,8 +26,8 @@ router.post("/create", async (req, res) => {
 
 router.put("/update/:id", async (req, res) => {
   try {
-    const { subject, body } = req.body;
-    const updatedNotice = await Notice.findByIdAndUpdate(req.params.id, { subject, body }, { new: true });
+    const { subject, body, links } = req.body;
+    const updatedNotice = await Notice.findByIdAndUpdate(req.params.id, { subject, body, links }, { new: true });
     if (!updatedNotice) return res.status(404).json({ message: "Notice not found" });
     res.json({ message: "Notice updated successfully", notice: updatedNotice });
   } catch (err) {
@@ -53,4 +54,4 @@ router.get("/all", async (req, res) => {
   }
 });
 
-module.exports = router; 
+module.exports = router;

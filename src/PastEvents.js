@@ -76,34 +76,28 @@ router.get('/events', async (req, res) => {
 });
 
 // 📌 DELETE route to remove an image from Cloudinary and MongoDB
-router.delete('/deleteCloudinary', async (req, res) => {
+
+// DELETE route to remove an event and its associated images
+router.delete('/deleteEvent/:id', async (req, res) => {
   try {
-    const { eventName, imageUrl } = req.body;
+    const eventId = req.params.id;
 
-    if (!eventName || !imageUrl) {
-      return res.status(400).json({ error: 'Event name and image URL are required' });
-    }
-
-    const event = await Event.findOne({ eventName });
-
+    // Find the event by ID
+    const event = await Event.findById(eventId);
     if (!event) {
       return res.status(404).json({ error: 'Event not found' });
     }
 
-    if (!event.cloudinaryLinks.includes(imageUrl)) {
-      return res.status(404).json({ error: 'Image not found in this event' });
+    // Delete each image from Cloudinary
+    for (const imageUrl of event.cloudinaryLinks) {
+      const publicId = imageUrl.split('/').pop().split('.')[0];
+      await cloudinary.uploader.destroy(`events/${publicId}`);
     }
 
-    // Extract public_id from image URL for Cloudinary deletion
-    const publicId = imageUrl.split('/').pop().split('.')[0];
+    // Delete the event from the database
+    await Event.findByIdAndDelete(eventId);
 
-    await cloudinary.uploader.destroy(`events/${publicId}`);
-
-    // Remove image from MongoDB
-    event.cloudinaryLinks = event.cloudinaryLinks.filter(url => url !== imageUrl);
-    await event.save();
-
-    res.json({ message: 'Image deleted successfully', remainingImages: event.cloudinaryLinks.length });
+    res.json({ message: 'Event and associated images deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
