@@ -7,21 +7,24 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Define the Event schema (without Google Drive link)
+// Define the Event schema with Google Drive link
 const eventSchema = new mongoose.Schema({
   eventName: { type: String, required: true },
   cloudinaryLinks: { type: [String], default: [] }, // Store up to 8 image URLs
+  googleDriveLink: { type: String }, // Store the Google Drive link
 });
 
 const Event = mongoose.model('Event', eventSchema);
 
+// POST route to upload images to Cloudinary and add Google Drive link
 router.post('/uploadCloudinary', upload.array('images', 8), async (req, res) => {
   try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: 'No images provided' });
-    }
+    const { eventName, googleDriveLink } = req.body;
 
-    const { eventName } = req.body; // Only event name
+    // Validate input
+    if (!eventName) {
+      return res.status(400).json({ error: 'Event name is required' });
+    }
 
     // Find existing event
     let event = await Event.findOne({ eventName });
@@ -33,10 +36,12 @@ router.post('/uploadCloudinary', upload.array('images', 8), async (req, res) => 
 
     // Upload images to Cloudinary
     let uploadedUrls = [];
-    for (const file of req.files) {
-      const base64Image = `data:image/png;base64,${file.buffer.toString('base64')}`;
-      const result = await cloudinary.uploader.upload(base64Image, { folder: 'events' });
-      uploadedUrls.push(result.secure_url);
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const base64Image = `data:image/png;base64,${file.buffer.toString('base64')}`;
+        const result = await cloudinary.uploader.upload(base64Image, { folder: 'events' });
+        uploadedUrls.push(result.secure_url);
+      }
     }
 
     // If event exists, update it; otherwise, create a new one
@@ -45,10 +50,14 @@ router.post('/uploadCloudinary', upload.array('images', 8), async (req, res) => 
         return res.status(400).json({ error: 'Uploading these images would exceed the 8-image limit' });
       }
       event.cloudinaryLinks.push(...uploadedUrls);
+      if (googleDriveLink) {
+        event.googleDriveLink = googleDriveLink;
+      }
     } else {
       event = new Event({
         eventName,
         cloudinaryLinks: uploadedUrls,
+        googleDriveLink,
       });
     }
 
@@ -59,13 +68,14 @@ router.post('/uploadCloudinary', upload.array('images', 8), async (req, res) => 
       eventName: event.eventName,
       uploadedImages: uploadedUrls,
       totalImages: event.cloudinaryLinks.length,
+      googleDriveLink: event.googleDriveLink,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// 📌 GET route to retrieve all events and their images
+// GET route to retrieve all events and their images
 router.get('/events', async (req, res) => {
   try {
     const events = await Event.find({});
@@ -74,8 +84,6 @@ router.get('/events', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-// 📌 DELETE route to remove an image from Cloudinary and MongoDB
 
 // DELETE route to remove an event and its associated images
 router.delete('/deleteEvent/:id', async (req, res) => {
