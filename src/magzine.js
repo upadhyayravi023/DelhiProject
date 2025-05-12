@@ -5,7 +5,7 @@ const router = express.Router();
 
 // Define the Magazine schema
 const magazineSchema = new mongoose.Schema({
-  magazineName: { type: String},
+  magazineName: { type: String,required: true},
   magazineLink: { type: String, required: true },
 });
 
