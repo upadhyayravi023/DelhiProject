@@ -25,22 +25,31 @@ router.post("/create", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-// Update Upcoming Event
 router.put("/update/:id", async (req, res) => {
   try {
     const { subject, body, links } = req.body;
-    const updatedEvent = await UpcomingEvent.findByIdAndUpdate(
-      req.params.id,
-      { subject, body, links },
-      { new: true }
-    );
-    if (!updatedEvent) return res.status(404).json({ message: "Event not found" });
-    res.json({ message: "Event updated successfully", event: updatedEvent });
+    const updatedNotice = await Notice.findByIdAndUpdate(req.params.id, { subject, body, links }, { new: true });
+    if (!updatedNotice) return res.status(404).json({ message: "Notice not found" });
+    res.json({ message: "Notice updated successfully", notice: updatedNotice });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+// Update Upcoming Event
+// router.put("/update/:id", async (req, res) => {
+//   try {
+//     const { subject, body, links } = req.body;
+//     const updatedEvent = await UpcomingEvent.findByIdAndUpdate(
+//       req.params.id,
+//       { subject, body, links },
+//       { new: true }
+//     );
+//     if (!updatedEvent) return res.status(404).json({ message: "Event not found" });
+//     res.json({ message: "Event updated successfully", event: updatedEvent });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
 // Delete Upcoming Event
 router.delete("/delete/:id", async (req, res) => {
