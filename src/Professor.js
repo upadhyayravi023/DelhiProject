@@ -14,6 +14,8 @@ const professorSchema = new mongoose.Schema({
   department: { type: String, required: true },
   imageUrl: { type: String, required: true },
   specialization: { type: String, required: true },
+  about: { type: String, required: true },
+  
   publicId: { type: String, required: true }, // Store Cloudinary public_id
 });
 
@@ -28,7 +30,7 @@ const uploadToCloudinary = async (buffer, folder) => {
 // Create a new professor
 router.post('/professors', upload.single('image'), async (req, res) => {
   try {
-    const { name, department, specialization } = req.body;
+    const { name, department, specialization,about } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ message: 'Image is required' });
@@ -40,6 +42,7 @@ router.post('/professors', upload.single('image'), async (req, res) => {
     const professor = new Professor({
       name,
       department,
+      about,
       imageUrl: result.secure_url, // Cloudinary image URL
       publicId: result.public_id, // Save public_id for deletion
       specialization,
@@ -78,7 +81,7 @@ router.get('/professors/:id', async (req, res) => {
 // Update a professor by ID
 router.put('/professors/:id', upload.single('image'), async (req, res) => {
   try {
-    const { name, department, specialization } = req.body;
+    const { name, department, specialization ,about} = req.body;
     const professor = await Professor.findById(req.params.id);
 
     if (!professor) {
@@ -88,6 +91,7 @@ router.put('/professors/:id', upload.single('image'), async (req, res) => {
     professor.name = name || professor.name;
     professor.department = department || professor.department;
     professor.specialization = specialization || professor.specialization;
+     professor.about = about || professor.about;
 
     if (req.file) {
       // Delete old image from Cloudinary
