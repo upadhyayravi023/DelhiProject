@@ -26,7 +26,7 @@ router.post("/create", async (req, res) => {
   }
 });
 
-Update Upcoming Event
+// Update Upcoming Event
 router.put("/update/:id", async (req, res) => {
   try {
     const { subject, body, links } = req.body;
